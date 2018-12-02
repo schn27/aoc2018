@@ -1,0 +1,308 @@
+"use strict";
+
+function calc() {
+	const ids = input.split("\n");
+	return getPart1(ids) + " " + getPart2(ids);
+}
+
+function getPart1(ids) {
+	let two = 0;
+	let three = 0;
+
+	ids.forEach(id => {
+		const counts = countLetters(id);
+
+		if (counts.indexOf(2) >= 0) {
+			++two;
+		}
+
+		if (counts.indexOf(3) >= 0) {
+			++three;
+		}
+	});
+
+	return two * three;	
+}
+
+function countLetters(id) {
+	let res = [];
+	id.split("").forEach(c => res[c] = (res[c] || 0) + 1);
+	return Object.values(res);
+}
+
+function getPart2(ids) {
+	for (let i = 0; i < ids.length - 1; ++i) {
+		for (let j = i; j < ids.length; ++j) {
+			const idi = ids[i];
+			const idj = ids[j];
+
+			let diff = 0;
+			let res = [];
+
+			for (let k = 0; k < idi.length; ++k) {
+				if (idi[k] == idj[k]) {
+					res.push(idi[k]);
+				} else {
+					++diff;
+				}
+			}
+
+			if (diff == 1) {
+				return res.join("");
+			}
+		}
+	}
+
+	return null;
+}
+
+const input = `crruafyzloguvxwctqmphenbkd
+srcjafyzlcguvrwctqmphenbkd
+srijafyzlogbpxwctgmphenbkd
+zrijafyzloguvxrctqmphendkd
+srijabyzloguvowcqqmphenbkd
+srijafyzsoguvxwctbmpienbkd
+srirtfyzlognvxwctqmphenbkd
+srijafyzloguvxwctgmphenbmq
+senjafyzloguvxectqmphenbkd
+srijafyeloguvxwwtqmphembkd
+srijafyzlogurxtctqmpkenbkd
+srijafyzlkguvxictqhphenbkd
+srijafgzlogunxwctqophenbkd
+shijabyzloguvxwctqmqhenbkd
+srjoafyzloguvxwctqmphenbwd
+srijafyhloguvxwmtqmphenkkd
+srijadyzlogwvxwctqmphenbed
+brijafyzloguvmwctqmphenhkd
+smijafyzlhguvxwctqmphjnbkd
+sriqafvzloguvxwctqmpheebkd
+srijafyzloguvxwisqmpuenbkd
+mrijakyuloguvxwctqmphenbkd
+srnfafyzloguvxwctqmphgnbkd
+srijadyzloguvxwhfqmphenbkd
+srijafhzloguvxwctdmlhenbkd
+srijafyzloguvxwcsqmphykbkd
+srijafyzlogwvxwatqmphhnbkd
+srijafyzlozqvxwctqmphenbku
+srijafyzloguvxwcbamphenbgd
+srijafyzlfguvxwctqmphzybkd
+srijafyzloguqxwetqmphenkkd
+srijafyylogubxwttqmphenbkd
+srijafyzloguvxzctadphenbkd
+srijafyzloguoxwhtqmchenbkd
+srijafyzloguvxwcvqmzhenbko
+srijnfyzloguvxwctqmchenjkd
+srijaryzloggvxwctqzphenbkd
+srijafhzleguvxwcxqmphenbkd
+ssijafyzllguvxfctqmphenbkd
+srijafyzloguvxdctqmfhenbcd
+srijafyzloguvxfctqmplynbkd
+srijaftzlogavxwcrqmphenbkd
+sriwaoyzloguvxwctqmphenbtd
+srijahyzlogunxwctqmphenbvd
+srjjafyzloguzxwctumphenbkd
+nrijafyzlxguvxwctqmphanbkd
+srijafezlqguyxwctqmphenbkd
+srijafygloguvxwjtqcphenbkd
+erijafyzloguvxoctqmnhenbkd
+ssijafyzllguvxwbtqmphenbkd
+sriaafyzloguvxwctqqphenbkv
+frijafyzloguvswctwmphenbkd
+srijafyzyogkvxwctqmprenbkd
+syijafyzuoguvxwctqmkhenbkd
+srijafyzloganxwctqmphenbkf
+srijafyzloguvxwftqmxhenbkq
+srijafyflogxvxwctqmghenbkd
+srijafyzsoguvxwctqmpjenwkd
+srujafylloguvxwctqmphenckd
+srijafyzlpzuvxwctqmphenbud
+srijafyzlogfvxwctqmhhenbwd
+srijafjzlogusxwctqmphepbkd
+srijlfyzloguvxwctqfphenzkd
+srijafyzlogwvxwctqyphenbqd
+srijafyzloluvxwctqtphenukd
+srizafyzlowuvxwctqmphqnbkd
+sritafkzlkguvxwctqmphenbkd
+sbijafdzloguvxgctqmphenbkd
+crijafyeloguvxwctqmpsenbkd
+srijafyvlogulxwctqmphenbkk
+srijafyologuvxwctqmehegbkd
+siijafyzloguvxwctjmphenbmd
+srijafyzlupuvxwctqmpheabkd
+srijafyzlogumxwctqqphanbkd
+srijxfyzlogujxwcqqmphenbkd
+irijafizeoguvxwctqmphenbkd
+sgijafyzloguvtwctqmpfenbkd
+srijzfyzloguvmwctnmphenbkd
+srijafyzwohuvxwctqmthenbkd
+srijafyzlhguvxoctqwphenbkd
+srgjafyplogxvxwctqmphenbkd
+srijafyqlogovxwctqzphenbkd
+srijafjzloguvlnvtqmphenbkd
+srijafyzooguvxwctqmphenvud
+srijafyzgoguvxwctumphgnbkd
+srijaffzloguvxwdqqmphenbkd
+srijafyzlogugxwctqxphenbkr
+srijafyzlogutxwctqmmcenbkd
+srifafyzlhguwxwctqmphenbkd
+mrimajyzloguvxwctqmphenbkd
+sriyafyzloguvxwcthmphejbkd
+srieakyzlokuvxwctqmphenbkd
+srisafyzloguhxwctqmphecbkd
+srijanyzloguvxcctqmxhenbkd
+srijafyzypguvxwctqmqhenbkd
+sryjtfyzlvguvxwctqmphenbkd
+srijafyzlsguvxwctqmqfenbkd
+srijafyzlogudxwbtqwphenbkd
+srijysyzloguvxwctqmpvenbkd
+srijafyzloggvxwjtqmphegbkd
+srijgfyzloguvxwctqmbhdnbkd
+ssijufyzloguvawctqmphenbkd
+skojafyzloguvxwctqmphenbnd
+srijafylloguvxwcqqmpienbkd
+trioafyzloguvqwctqmphenbkd
+srijafydloguvxwctqmpzjnbkd
+saijafvzloguvxwcqqmphenbkd
+srhjapyzloguvxwctqmbhenbkd
+srijafyzlfguvxwcsqmpwenbkd
+shijafyzboguvxwctqmphenbmd
+srizafysloguvxwrtqmphenbkd
+srijafyzloguvxwciqmwhenbkj
+qrijafyzloduvxwctqmphenbko
+srijefyuloguvxwctqmphenbed
+srijafyzlobuvxwctqmphenhbd
+srijafyzloxuvxwctqmpheabkq
+srijafyzloguvrwctqmghenkkd
+sfisafywloguvxwctqmphenbkd
+srgjafyzlogurxwctqmphenbkp
+srijafhzloguvxwcjqmphenhkd
+srijafyylogufxwrtqmphenbkd
+srijafyzvoguvxwzkqmphenbkd
+sqijafyzloguvxwctqmpheqbxd
+srijafyvloguvxwctqzpherbkd
+srijufyzloguvxlcsqmphenbkd
+srijafykloguvxlccqmphenbkd
+srijafyzloguexwcrqmphenzkd
+sridifyzloguyxwctqmphenbkd
+srijafyzlogfvxwctqlphenbkl
+srijafyzlodqdxwctqmphenbkd
+srijafyzloruvxactqmphenekd
+grijafyzloguvxpctmmphenbkd
+srsjakyzloguvxwctqmphvnbkd
+srikafyvloguvxwrtqmphenbkd
+srijafyzloguvxwctqjpserbkd
+jrijafyzloguvxwctqmpgesbkd
+swijafyzluguvxwctqmfhenbkd
+srijanynlogovxwctqmphenbkd
+jrijafyzloguvxwctymphrnbkd
+srinafyzloguvewctqmphenbzd
+srijakyzloguvxwctqmphcnbka
+srijafyhlobuvxwctqmphenbka
+srijafyzcogusxwctqmphwnbkd
+srijavyzlosuvxwctqmphjnbkd
+orijafyzxoguvxwcnqmphenbkd
+srijafyzlogcvxwvtqmthenbkd
+srijapyzloauvxwctqmphenvkd
+srijaflzloguhxwctqmphenbwd
+smijafyzlonuvxwctqmphenbkw
+jrijafyzloguvxwclqmnhenbkd
+srijaqyzloguvqwctqmphenskd
+srijasyzloguvxwctqmvhenbku
+crijtfyzloguvxwctqmthenbkd
+srrkafyzvoguvxwctqmphenbkd
+srijatyzloguvewctqmphenbld
+srfjafyyloguvnwctqmphenbkd
+srijafyzloguvxwctqjpbenbkt
+hrijafyzooguvxwctqmphenbld
+srijafbzlogscxwctqmphenbkd
+srinafyzlogxvxwctqqphenbkd
+slijafyzloglvxwctqmphenbdd
+srijafyzlogjvxwcsqmphenbld
+sryjcfyzloguvewctqmphenbkd
+srijafyzloguexwctqmohknbkd
+jaijafyzlogevxwctqmphenbkd
+srijafbzlogavxwctqmphenbki
+srijafozlogpvxwctqmphgnbkd
+srijdfyzloguvxwczqmphenbkm
+srijafyzlobuvxwctqmphxndkd
+mrijifyzlhguvxwctqmphenbkd
+srijafyzloguvxbctumphjnbkd
+srijafyzloyuvxwptqmphlnbkd
+arijafyzloguvxwcsqmohenbkd
+srijaftzioguvxwttqmphenbkd
+srijafyzlqsuvxwctqmphxnbkd
+srijafyzioguvxwctqnphetbkd
+prijafbzloguvxdctqmphenbkd
+srijaeyzlnguvxwmtqmphenbkd
+srijofyzloguvqwctqmphonbkd
+srixaryzpoguvxwctqmphenbkd
+srijafyzlowuvxwcwhmphenbkd
+srijafydloguvxwctqmptenikd
+srijqfyzlogtvfwctqmphenbkd
+srijafyzloguvxlctqmpvenbgd
+srijafyzlbguvxwjtqgphenbkd
+srijafyzlohuqxwctqmphenbka
+srijafyzroguvxictqmphynbkd
+srijafyzloguvxdctjmphenjkd
+srijaoczloguvxwctqmphenbjd
+srajafhzloguvxwctqmphenbke
+srijofyzloduvxwctqmphanbkd
+srijafytloguvxwmtnmphenbkd
+srijafyzuoguvxwceqmpgenbkd
+rrijafyzloyuvxwctqmphlnbkd
+srljafyzloguvxictqmohenbkd
+srijafyzlogulxwcrqrphenbkd
+srajafyzloguvxwctqmphanbke
+srijafyzlhguvxwxtqmpheabkd
+sxijafyzloggwxwctqmphenbkd
+srijafyultguvxwctqmphinbkd
+srijafyzloguvtwctqmfhvnbkd
+srijafwzloruvxwctquphenbkd
+srbjafyzxoguuxwctqmphenbkd
+erijafyzlxguvxbctqmphenbkd
+srijagyzlojubxwctqmphenbkd
+srijafyzloguvxwdtqmchenakd
+srijafkzlogukxwctqiphenbkd
+mridafyzloguvxwctqmphenrkd
+szqjafyzloguvxwctqmpheibkd
+srijahyzloguvxwctcmphenekd
+srijafyzloguvxwczpuphenbkd
+srijafyzcoguvfwctqmphenbkq
+qriiafyzloguvxwctqmpheebkd
+srijpfyzloguvxlctqmphenokd
+srijzfyzlotuvxwcjqmphenbkd
+srinafyqloguvxwctfmphenbkd
+srijafyzlogjvxpltqmphenbkd
+srijafyzlotuvxwutqmphenbtd
+sridafyzloguvxwctqmpyenokd
+srxjafyzqogyvxwctqmphenbkd
+ssijafyzzoguvxwctqmphenbad
+srijafrzloguvxwctqmphekpkd
+srijafyzlfgrvxactqmphenbkd
+srijafyzroguvxwttqmphekbkd
+srijefyzloguvxwctqmpqenbrd
+srijefycloguvxwctqmchenbkd
+srzjafyzloguvxwcqqmphanbkd
+srijauyzlhguvxwctqmphenbgd
+srijafyzloguvmwvnqmphenbkd
+srihafyzloguvlwotqmphenbkd
+srigafyzloguvxwctqmphennsd
+sriuafzzloguvxwcuqmphenbkd
+srijavuzllguvxwctqmphenbkd
+srijafjzloguvlnctqmphenbkd
+lrirafyzloguvxwctqmphenbld
+soijarxzloguvxwctqmphenbkd
+srijapyzlnguvxwctqmdhenbkd
+srijafyzkogujxmctqmphenbkd
+srijafuzloguvxwcsqvphenbkd
+srijagyzzoguvxwctqmpvenbkd
+srijafyzlovuvxwctqmrhenbxd
+srijafyzqoguvxwctwmpienbkd
+sxijafyzloguvxwutqmphenlkd
+srijafyzlhgzvxwctqmphqnbkd
+srijajyzloguvxwcbwmphenbkd
+srijazyzloguvxwhtqmphenbkx
+srgjafyzloguvvwctqmphdnbkd
+rrivafyzloguvxjctqmphenbkd
+srijifyzdoguvxwctqmphenbka
+hrijafyzloguvxectqmpheybkd`;
