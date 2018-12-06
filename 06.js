@@ -6,13 +6,14 @@ function calc() {
 	const w = Math.max(...coords.map(c => c[0])) + 1;
 	const h = Math.max(...coords.map(c => c[1])) + 1;
 
+	const part2Dist = 10000;
+	let part2 = 0;
+
 	let infPoints = coords.map(c => 0);
-	
+
 	let m = new Array(h);
-	let m2 = new Array(h);
 	for (let y = 0; y < h; ++y) {
 		m[y] = new Array(w);
-		m2[y] = new Array(w);
 		for (let x = 0; x < w; ++x) {
 			const distances = coords.map(c => Math.abs(c[0] - x) + Math.abs(c[1] - y));
 			const minDistance = Math.min(...distances);
@@ -24,15 +25,14 @@ function calc() {
 				infPoints[point] = 1;
 			}
 
-			m2[y][x] = distances.reduce((a, d) => a + d, 0);
+			if (distances.reduce((a, d) => a + d, 0) < part2Dist) {
+				++part2;
+			}
 		}
 	}
 
 	const part1 = Math.max(...coords.map((c, i) => m.reduce((a, r) => a + r.filter(e => e == i).length, 0))
 		.filter((e, i) => infPoints[i] != 1));
-
-	const part2Dist = 10000;
-	const part2 = m2.reduce((a, r) => a + r.filter(e => e < part2Dist).length, 0);
 
 	return part1 + " " + part2;
 }
