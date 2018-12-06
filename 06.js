@@ -9,8 +9,10 @@ function calc() {
 	let infPoints = coords.map(c => 0);
 	
 	let m = new Array(h);
+	let m2 = new Array(h);
 	for (let y = 0; y < h; ++y) {
 		m[y] = new Array(w);
+		m2[y] = new Array(w);
 		for (let x = 0; x < w; ++x) {
 			const distances = coords.map(c => Math.abs(c[0] - x) + Math.abs(c[1] - y));
 			const minDistance = Math.min(...distances);
@@ -21,19 +23,19 @@ function calc() {
 			if ((point != -1) && (x == 0 || y == 0 || x == w - 1 || y == h - 1)) {
 				infPoints[point] = 1;
 			}
+
+			m2[y][x] = distances.reduce((a, d) => a + d, 0);
 		}
 	}
 
-	return Math.max(...coords.map((c, i) => m.reduce((a, r) => a + r.filter(e => e == i).length, 0))
+	const part1 = Math.max(...coords.map((c, i) => m.reduce((a, r) => a + r.filter(e => e == i).length, 0))
 		.filter((e, i) => infPoints[i] != 1));
-}
 
-const test = `1, 1
-1, 6
-8, 3
-3, 4
-5, 5
-8, 9`;
+	const part2Dist = 10000;
+	const part2 = m2.reduce((a, r) => a + r.filter(e => e < part2Dist).length, 0);
+
+	return part1 + " " + part2;
+}
 
 const input = `353, 177
 233, 332
