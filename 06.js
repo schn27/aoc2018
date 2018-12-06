@@ -6,23 +6,21 @@ function calc() {
 	const w = Math.max(...coords.map(c => c[0])) + 1;
 	const h = Math.max(...coords.map(c => c[1])) + 1;
 
+	let infAreas = coords.map(c => false);	// mark areas touched any border (infinite areas)
+	let areas = coords.map(c => 0);
+
 	const part2Dist = 10000;
 	let part2 = 0;
 
-	let infPoints = coords.map(c => 0);
-
-	let m = new Array(h);
 	for (let y = 0; y < h; ++y) {
-		m[y] = new Array(w);
 		for (let x = 0; x < w; ++x) {
 			const distances = coords.map(c => Math.abs(c[0] - x) + Math.abs(c[1] - y));
 			const minDistance = Math.min(...distances);
-			const point = distances.filter(d => d == minDistance).length > 1 ? -1 : distances.indexOf(minDistance);
 			
-			m[y][x] = point;
-
-			if ((point != -1) && (x == 0 || y == 0 || x == w - 1 || y == h - 1)) {
-				infPoints[point] = 1;
+			if (distances.filter(d => d == minDistance).length == 1) {
+				const point = distances.indexOf(minDistance);
+				++areas[point];
+				infAreas[point] |= (x == 0 || y == 0 || x == w - 1 || y == h - 1);
 			}
 
 			if (distances.reduce((a, d) => a + d, 0) < part2Dist) {
@@ -31,8 +29,7 @@ function calc() {
 		}
 	}
 
-	const part1 = Math.max(...coords.map((c, i) => m.reduce((a, r) => a + r.filter(e => e == i).length, 0))
-		.filter((e, i) => infPoints[i] != 1));
+	const part1 = Math.max(...areas.filter((e, i) => !infAreas[i]));
 
 	return part1 + " " + part2;
 }
