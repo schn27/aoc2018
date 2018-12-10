@@ -1,7 +1,7 @@
 "use strict";
 
 function calc() {
-	const points = input.split("\n").map(p => p.match(/(\d+)|(-\d+)/g).map(Number));
+	const points = input.split("\n").map(p => p.match(/\d+|-\d+/g).map(Number));
 
 	let t = 0;
 	while (true) {
