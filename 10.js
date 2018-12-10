@@ -1,35 +1,22 @@
 "use strict";
 
 function calc() {
-	// the first pass to find the generation of the least box
+	const points = input.split("\n").map(p => p.match(/(\d+)|(-\d+)/g).map(Number));
 
-	let points = input.split("\n").map(p => p.match(/(\d+)|(-\d+)/g).map(Number));
-
-	let newSize = getSize(points);
-	let size = newSize + 1;
-
-	let generation = 0;
-	for (; newSize < size; ++generation) {
-		size = newSize;
-		update(points);
-		newSize = getSize(points);
+	let t = 0;
+	while (true) {
+		if (getSize(getState(points, t + 1)) < getSize(getState(points, t))) {
+			++t;
+		} else {
+			break;
+		}
 	}
 
-	--generation;	// one generation before the size starts to increase
-
-	// the second pass to get the message
-
-	points = input.split("\n").map(p => p.match(/(\d+)|(-\d+)/g).map(Number));
-
-	for (let i = 1; i <= generation; ++i) {
-		update(points);
-	}
-
-	return getOutput(points) + " " + generation;
+	return getOutput(getState(points, t)) + " " + t;
 }
 
-function update(points) {
-	points.forEach(p => {p[0] += p[2]; p[1] += p[3];});
+function getState(points, t) {
+	return points.map(p => [p[0] + p[2] * t, p[1] + p[3] * t]);
 }
 
 function getBoundingBox(points) {
