@@ -3,86 +3,55 @@
 function calc() {
 	let carts = [];
 
+	const dirs = {"<": [-1, 0], ">": [1, 0], "^": [0, -1], "v": [0, 1]};
+
 	const track = input.split("\n").map((l, y) => l.split("").map((c, x) => {
-		if (c == "<" || c == ">") {
-			carts.push({x: x, y: y, dir: c, turn: 0, crashed: false});
-			return "-";
-		} else if (c == "^" || c == "v") {
-			carts.push({x: x, y: y, dir: c, turn: 0, crashed: false});
-			return "|";	
+		if (c == "<" || c == ">" || c == "^" || c == "v") {
+			carts.push({x: x, y: y, dir: dirs[c], cross: 0, crashed: false});
+			return c == "<" || c == ">" ? "-" : "|";
 		} else {
 			return c;
 		}
 	}));
 
-	const dirs = {"<": [-1, 0], ">": [1, 0], "^": [0, -1], "v": [0, 1]};
-	const turnLeft = {"<": "v", ">": "^", "^": "<", "v": ">"};
-	const straight = {"<": "<", ">": ">", "^": "^", "v": "v"};
-	const turnRight = {"<": "^", ">": "v", "^": ">", "v": "<"};
-	const turns = [turnLeft, straight, turnRight];
+	let firstLooser = undefined;
 
-	let crash = null;
-	let winner = null;
-
-	while (winner == null) {
-		carts.sort((a, b) => {
-			let sy = (a.y - b.y);
-			let sx = (a.x - b.x);
-			return sy != 0 ? sx : sy;
-		}).filter(c => !c.crashed).forEach(c => {
-			c.x += dirs[c.dir][0];
-			c.y += dirs[c.dir][1];
-
-			if (track[c.y][c.x] == "+") {
-				c.dir = turns[c.turn][c.dir];
-
-				if (++c.turn >= turns.length) {
-					c.turn = 0;
-				}
-			} else if ((track[c.y][c.x] == "\\" && (c.dir == "<" || c.dir == ">")) || (track[c.y][c.x] == "/" && (c.dir == "^" || c.dir == "v"))) {
-				c.dir = turnRight[c.dir];
-			} else if ((track[c.y][c.x] == "\\" && (c.dir == "^" || c.dir == "v")) || (track[c.y][c.x] == "/" && (c.dir == "<" || c.dir == ">"))) {
-				c.dir = turnLeft[c.dir];
-			}
-
-			let newCrash = updateCrash(carts);
-
-			if (crash == null && newCrash != null) {
-				crash = newCrash;
+	while (carts.filter(c => !c.crashed).length > 1) {
+		carts.filter(c => !c.crashed).sort((a, b) => a.y != b.y ? a.y - b.y : a.x - b.x).forEach(c => {
+			if (!c.crashed) {
+				move(track, carts, c);
+				firstLooser = firstLooser || carts.filter(c => c.crashed)[0];
 			}
 		});	
-
-		let newWinner = carts.filter(c => !c.crashed);
-
-		if (winner == null && newWinner.length == 1) {
-			winner = [newWinner[0].x, newWinner[0].y];
-		}
 	}
 
-	return crash.join(",") + " " + winner.join(",");
+	const winner = carts.filter(c => !c.crashed)[0];
+
+	return `${firstLooser.x},${firstLooser.y} ${winner.x},${winner.y}`;
 }
 
-function updateCrash(carts) {
-	let crash = null;
+function move(track, carts, cart) {
+	const crossActions = [(d => [d[1], -d[0]]), (d => d), (d => [-d[1], d[0]])];
 
-	carts.filter(c => !c.crashed).forEach(cart => {
-		let crashed = carts.filter(c => c.x == cart.x && c.y == cart.y);
-		if (crashed.length > 1) {
-			crashed.forEach(c => c.crashed = true);
-			crash = [cart.x, cart.y];
-		}
-	});
+	cart.x += cart.dir[0];
+	cart.y += cart.dir[1];
 
-	return crash;
+	switch (track[cart.y][cart.x]) {
+	case "+":
+		cart.dir = crossActions[cart.cross](cart.dir);
+		cart.cross = (cart.cross + 1) % crossActions.length;
+		break;
+	case "\\":
+		cart.dir = [cart.dir[1], cart.dir[0]];
+		break;
+	case "/":
+		cart.dir = [-cart.dir[1], -cart.dir[0]];
+		break;
+	}
+
+	carts.filter(c => !c.crashed && c !== cart && c.x == cart.x && c.y == cart.y)
+		.forEach(c => c.crashed = cart.crashed = true);
 }
-
-const test = String.raw`/->-\        
-|   |  /----\
-| /-+--+-\  |
-| | |  | v  |
-\-+-/  \-+--/
-  \------/   
-`;
 
 const input = String.raw`                     /---------------\                                                                                                                
                      |       /-------+---------------------\                                                                                          
