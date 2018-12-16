@@ -16,8 +16,7 @@ function calc() {
 
 	const results = tests.map(t => ({
 		code: t[1][0], 
-		candidates: opcodes.filter(o => doOpcode(o, t[1].slice(1), t[0])
-			.filter((r, i) => r == t[2][i]).length == t[2].length)
+		candidates: opcodes.filter(o => doOpcode(o, t[1].slice(1), t[0]).every((r, i) => r == t[2][i]))
 	}));
 
 	const part1 = results.filter(r => r.candidates.length >= 3).length;
