@@ -10,41 +10,38 @@ function calc() {
 		return res;
 	}));
 
-	const spring = {x: 500, y: 0};
-
 	let map = scan.slice().map(l => l.slice());
 	let part1 = null;
 
-	map[spring.y] = map[spring.y] || [];
-	map[spring.y][spring.x] = "|";
+	const minY = Math.min(...Object.keys(map));
+	const maxY = Math.max(...Object.keys(map)) - 1;
+	const minX = Math.min(...Object.keys(map[minY]));
+	const maxX = Math.max(...Object.keys(map[minY]));
 
-	for (let i = 0; ; ++i) {
+	map[minY][500] = "|";	// spring
+
+	while (true) {
 		let conversion = false;
 
-		const y0 = Math.min(...Object.keys(map));
-		const y1 = Math.max(...Object.keys(map));
-		for (let y = y0; y <= y1; ++y) {
-			const x0 = Math.min(...Object.keys(map[y] || []));
-			const x1 = Math.max(...Object.keys(map[y] || []));
-			for (let x = x0; x <= x1; ++x) {
+		for (let y = minY; y <= maxY; ++y) {
+			for (let x = minX; x <= maxX; ++x) {
 				if (map[y][x] == "|") {
-					const under = (map[y + 1] || [])[x];
+					const under = map[y + 1][x];
 					if (under == "~" || under == "#") {
-						if (map[y][x - 1] == undefined) {
+						if (map[y][x - 1] == ".") {
 							map[y][x - 1] = "|";
 						} else if (map[y][x - 1] != "|") {
 							conversion |= convertWater(map, x, y, 1);
 						}
 						
-						if (map[y][x + 1] == undefined) {
+						if (map[y][x + 1] == ".") {
 							map[y][x + 1] = "|";
 						} else if (map[y][x + 1] != "|") {
 							conversion |= convertWater(map, x, y, -1);
 						}
 
 					} else {
-						if (y + 1 <= y1) {
-							map[y + 1] = map[y + 1] || [];
+						if (y + 1 <= maxY) {
 							map[y + 1][x] = "|";
 						}
 					}
@@ -52,7 +49,7 @@ function calc() {
 			}
 		}
 
-		let count = map.reduce((a, r) => a + r.filter(e => e == "~" || e == "|").length, 0) - 1;
+		let count = map.reduce((a, r) => a + r.filter(e => e == "~" || e == "|").length, 0);
 		if (count == part1 && !conversion) {
 			part1 = count;
 			break;
@@ -61,7 +58,7 @@ function calc() {
 		part1 = count;
 	}
 
-	let part2 = null;
+	let part2 = map.reduce((a, r) => a + r.filter(e => e == "~").length, 0);
 
 	return `${part1} ${part2}`;
 }
@@ -83,51 +80,32 @@ function convertWater(map, x, y, dx) {
 }
 
 function getMap(data) {
+	const minX = Math.min(...data.map(e => e.x[1] == undefined ? e.x[0] : Math.min(...e.x))) - 1;
+	const maxX = Math.max(...data.map(e => e.x[1] == undefined ? e.x[0] : Math.max(...e.x))) + 1;
+	const minY = Math.min(...data.map(e => e.y[1] == undefined ? e.y[0] : Math.min(...e.y)));
+	const maxY = Math.max(...data.map(e => e.y[1] == undefined ? e.y[0] : Math.max(...e.y))) + 1;
+
 	let res = [];
+	for (let y = minY; y <= maxY; ++y) {
+		let row = [];
+
+		for (let x = minX; x <= maxX; ++x) {
+			row[x] = ".";
+		}
+
+		res[y] = row;
+	}
 
 	data.forEach(e => {
-		for (let y = e.y[0]; y < (e.y[1] || e.y[0]) + 1; ++y) {
-			for (let x = e.x[0]; x < (e.x[1] || e.x[0]) + 1; ++x) {
-
-				res[y] = res[y] || [];
+		for (let y = e.y[0]; y <= (e.y[1] || e.y[0]); ++y) {
+			for (let x = e.x[0]; x <= (e.x[1] || e.x[0]); ++x) {
 				res[y][x] = "#";
 			}
 		}
 	});
 
-	const y0 = Math.min(...Object.keys(res));
-	const y1 = Math.max(...Object.keys(res));
-
-	for (let y = y0; y <= y1; ++y) {
-		res[y] = res[y] || [];
-	}
-
 	return res;
 }
-
-function printMap(map) {
-	const y0 = 0;
-	const y1 = 15;
-	for (let y = y0; y <= y1; ++y) {
-		const x0 = 495;
-		const x1 = 507;
-		let row = [];
-		for (let x = x0; x <= x1; ++x) {
-			row.push((map[y] || [])[x] || ".");
-		}
-
-		console.log(row);
-	}
-}
-
-const test = `x=495, y=2..7
-y=7, x=495..501
-x=501, y=3..7
-x=498, y=2..4
-x=506, y=1..2
-x=498, y=10..13
-x=504, y=10..13
-y=13, x=498..504`;
 
 const input = `x=504, y=333..358
 y=102, x=587..593
