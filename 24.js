@@ -5,7 +5,7 @@ function calc() {
 	
 	let boost = 0;
 
-	for (let mask = (1 << 15); mask != 0; mask >>= 1) {
+	for (let mask = (1 << 7); mask != 0; mask >>= 1) {
 		const winner = getWinner(input, boost | mask);
 
 		if (winner == null || winner.title == "infection") {
@@ -23,32 +23,38 @@ function calc() {
 }
 
 function getWinner(input, boost) {
-	let [immune, infection] = parse(input);
-	immune.forEach(e => e.damage += (boost || 0));
+	const [immune, infection] = [0, 1];
 
-	let i = 0;
+	let armies = parse(input);
+	armies[immune].forEach(e => e.damage += (boost || 0));
 
-	while (immune.filter(e => e.units > 0).length != 0 && infection.filter(e => e.units > 0).length != 0) {
-		[immune, infection] = fightRound(immune, infection);
+	let units = armies.map(a => a.reduce((a, e) => a + e.units, 0));
 
-		if (++i > 10000) {
-			return null;	// too long, exit fight
+	while (units.every(u => u > 0)) {
+		armies = fightRound(armies);
+		const newUnits = armies.map(a => a.reduce((a, e) => a + e.units, 0));
+
+		if (newUnits.every((u, i) => u == units[i])) {
+			return null;	// stale
 		}
+
+		units = newUnits;
 	}
 
-	return immune.filter(e => e.units > 0).length > 0 ? {army: immune, title: "immune"} : {army: infection, title: "infection"};
+	return armies[immune].reduce((a, e) => a + e.units, 0) > 0 ? 
+		{army: armies[immune], title: "immune"} : {army: armies[infection], title: "infection"};
 }
 
-function fightRound(immune, infection) {
-	selectTargets(immune, infection);
-	selectTargets(infection, immune);
+function fightRound(armies) {
+	selectTargets(armies[0], armies[1]);
+	selectTargets(armies[1], armies[0]);
 
-	[...immune, ...infection]
+	[...armies[0], ...armies[1]]
 		.sort((a, b) => b.initiative - a.initiative)
 		.filter(e => e.target != null)
 		.forEach(e => e.target.units = Math.max(0, e.target.units - Math.floor(getDamage(e, e.target) / e.target.hp)));
 
-	return [immune.filter(e => e.units > 0), infection.filter(e => e.units > 0)];
+	return armies.map(a => a.filter(e => e.units > 0));
 }
 
 function selectTargets(attackers, defenders) {
@@ -58,7 +64,7 @@ function selectTargets(attackers, defenders) {
 		getEffectivePower(b) - getEffectivePower(a) : b.initiative - a.initiative);
 
 	attackers.forEach(g => {
-		let targets = defenders.filter(e => !selected.has(e));
+		const targets = defenders.filter(e => !selected.has(e));
 		targets.sort((a, b) => getDamage(g, a) != getDamage(g, b) ? 
 				getDamage(g, b) - getDamage(g, a) : 
 				((getEffectivePower(a) != getEffectivePower(b)) ? 
@@ -78,21 +84,11 @@ function getEffectivePower(group) {
 }
 
 function getDamage(attacker, defender) {
-	if (attacker == null || defender == null) {
+	if (attacker == null || defender == null || defender.immuneTo.has(attacker.damageType)) {
 		return 0;
 	}
 
-	let damage = getEffectivePower(attacker);
-	
-	if (defender.immuneTo.has(attacker.damageType)) {
-		damage = 0;
-	}
-
-	if (defender.weakTo.has(attacker.damageType)) {
-		damage *= 2;
-	}
-
-	return damage;
+	return getEffectivePower(attacker) * (defender.weakTo.has(attacker.damageType) ? 2 : 1);
 }
 
 function parse(input) {
@@ -107,10 +103,10 @@ function parse(input) {
 		} else if (l.indexOf("Infection:") >= 0) {
 			current = infection;
 		} else if (l.length > 0) {
-			let numbers = l.match(/\d+/g).map(Number);
-			let words = l.match(/[a-z]+/g);
+			const numbers = l.match(/\d+/g).map(Number);
+			const words = l.match(/[a-z]+/g);
 
-			let weakTo = new Set();
+			const weakTo = new Set();
 
 			if (words.indexOf("weak") >= 0) {
 				for (let i = words.indexOf("weak") + 2; words[i] != "with" && words[i] != "immune" && i < words.length; ++i) {
@@ -118,7 +114,7 @@ function parse(input) {
 				}
 			}
 
-			let immuneTo = new Set();
+			const immuneTo = new Set();
 
 			if (words.indexOf("immune") >= 0) {
 				for (let i = words.indexOf("immune") + 2; words[i] != "with" && words[i] != "weak" && i < words.length; ++i) {
@@ -126,10 +122,9 @@ function parse(input) {
 				}
 			}
 
-			let damageType = words[words.indexOf("damage") - 1];
+			const damageType = words[words.indexOf("damage") - 1];
 
 			current.push({
-				index: current.length,
 				units: numbers[0], 
 				hp: numbers[1],
 				weakTo: weakTo, 
