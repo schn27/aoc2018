@@ -1,70 +1,98 @@
 "use strict";
 
 function calc() {
-	let [immune, infection] = parse(test);
+	const part1 = getWinner(input).army.reduce((a, e) => a + e.units, 0);
+	
+	let boost = 0;
 
-	while (immune.filter(o => o.units > 0).length != 0 && infection.filter(o => o.units > 0).length != 0) {
-		console.log("Immune: " + immune.map(e => e.units).join(",") + " Infection: " + infection.map(e => e.units).join(","));
-		fight(immune, infection);
+	for (let mask = (1 << 15); mask != 0; mask >>= 1) {
+		const winner = getWinner(input, boost | mask);
+
+		if (winner == null || winner.title == "infection") {
+			boost |= mask;
+		}
 	}
 
-	console.log(immune);
-	console.log(infection);
+	while (getWinner(input, boost) == null) {
+		++boost;
+	}
 
-	const winner = (immune.filter(o => o.units > 0).length > infection.filter(o => o.units > 0).length) ? immune : infection;
-	
-	const part1 = winner.reduce((a, e) => a + e.units, 0);
-	const part2 = null;
+	const part2 = getWinner(input, boost).army.reduce((a, e) => a + e.units, 0);
 
 	return `${part1} ${part2}`;
 }
 
-function fight(immune, infection) {
-	immune.sort((a, b) => (a.units * a.damage != b.units * b.damage) ? 
-			b.units * b.damage - a.units * a.damage : b.initiative - a.initiative);
+function getWinner(input, boost) {
+	let [immune, infection] = parse(input);
+	immune.forEach(e => e.damage += (boost || 0));
 
-	infection.sort((a, b) => (a.units * a.damage != b.units * b.damage) ? 
-			b.units * b.damage - a.units * a.damage : b.initiative - a.initiative);
+	let i = 0;
 
+	while (immune.filter(e => e.units > 0).length != 0 && infection.filter(e => e.units > 0).length != 0) {
+		[immune, infection] = fightRound(immune, infection);
+
+		if (++i > 10000) {
+			return null;	// too long, exit fight
+		}
+	}
+
+	return immune.filter(e => e.units > 0).length > 0 ? {army: immune, title: "immune"} : {army: infection, title: "infection"};
+}
+
+function fightRound(immune, infection) {
 	selectTargets(immune, infection);
 	selectTargets(infection, immune);
 
-	let all = [...immune, ...infection];
-	all.sort((a, b) => b.initiative - a.initiative);
-	all = all.filter(e => e.target != null);
-	all.forEach(e => {
-		let ep = e.units * e.damage;
-		if (e.target.weakTo.indexOf(e.damageType) >= 0) {
-			ep = ep * 2;
-		}
+	[...immune, ...infection]
+		.sort((a, b) => b.initiative - a.initiative)
+		.filter(e => e.target != null)
+		.forEach(e => e.target.units = Math.max(0, e.target.units - Math.floor(getDamage(e, e.target) / e.target.hp)));
 
-		if (e.target.immuneTo.indexOf(e.damageType) >= 0) {
-			ep = 0;
-		}
-
-		e.targetKills = Math.floor(ep / e.target.hp);
-	});
-
-	all.forEach(e => e.target.units = Math.max(0, e.target.units - e.targetKills));	
+	return [immune.filter(e => e.units > 0), infection.filter(e => e.units > 0)];
 }
 
-function selectTargets(attacker, defender) {
-	let targets = attacker.slice().map(e => null);
+function selectTargets(attackers, defenders) {
+	let selected = new Set();
 
-	attacker.forEach((g, i) => {
-		let t = defender.filter(e => targets.indexOf(e) < 0 && e.immuneTo.indexOf(g.damageType) < 0);
-		t.sort((a, b) => (a.weakTo.indexOf(g.damageType) > 0) != (b.weakTo.indexOf(g.damageType) > 0) ? 
-			(b.weakTo.indexOf(g.damageType) > 0) - (a.weakTo.indexOf(g.damageType) > 0) : b.initiative - a.initiative);
-		targets[i] = t[0];
-		g.target = t[0];
+	attackers.sort((a, b) => (getEffectivePower(a) != getEffectivePower(b)) ? 
+		getEffectivePower(b) - getEffectivePower(a) : b.initiative - a.initiative);
+
+	attackers.forEach(g => {
+		let targets = defenders.filter(e => !selected.has(e));
+		targets.sort((a, b) => getDamage(g, a) != getDamage(g, b) ? 
+				getDamage(g, b) - getDamage(g, a) : 
+				((getEffectivePower(a) != getEffectivePower(b)) ? 
+						getEffectivePower(b) - getEffectivePower(a) : b.initiative - a.initiative));
+		
+		if (getDamage(g, targets[0]) > 0) {
+			selected.add(targets[0]);
+			g.target = targets[0];
+		} else {
+			g.target = undefined;
+		}
 	});
 }
 
-function sortArmy(army) {
-	army.sort((a, b) => 
-		(a.units * a.damage != b.units * b.damage) ? 
-			b.units * b.damage - a.units * a.damage : 
-			b.initiative - a.initiative);
+function getEffectivePower(group) {
+	return group.units * group.damage;
+}
+
+function getDamage(attacker, defender) {
+	if (attacker == null || defender == null) {
+		return 0;
+	}
+
+	let damage = getEffectivePower(attacker);
+	
+	if (defender.immuneTo.has(attacker.damageType)) {
+		damage = 0;
+	}
+
+	if (defender.weakTo.has(attacker.damageType)) {
+		damage *= 2;
+	}
+
+	return damage;
 }
 
 function parse(input) {
@@ -82,19 +110,19 @@ function parse(input) {
 			let numbers = l.match(/\d+/g).map(Number);
 			let words = l.match(/[a-z]+/g);
 
-			let weakTo = [];
+			let weakTo = new Set();
 
 			if (words.indexOf("weak") >= 0) {
 				for (let i = words.indexOf("weak") + 2; words[i] != "with" && words[i] != "immune" && i < words.length; ++i) {
-					weakTo.push(words[i]);
+					weakTo.add(words[i]);
 				}
 			}
 
-			let immuneTo = [];
+			let immuneTo = new Set();
 
 			if (words.indexOf("immune") >= 0) {
 				for (let i = words.indexOf("immune") + 2; words[i] != "with" && words[i] != "weak" && i < words.length; ++i) {
-					immuneTo.push(words[i]);
+					immuneTo.add(words[i]);
 				}
 			}
 
@@ -115,14 +143,6 @@ function parse(input) {
 
 	return [immune, infection];
 }
-
-const test = `Immune System:
-17 units each with 5390 hit points (weak to radiation, bludgeoning) with an attack that does 4507 fire damage at initiative 2
-989 units each with 1274 hit points (immune to fire; weak to bludgeoning, slashing) with an attack that does 25 slashing damage at initiative 3
-
-Infection:
-801 units each with 4706 hit points (weak to radiation) with an attack that does 116 bludgeoning damage at initiative 1
-4485 units each with 2961 hit points (immune to radiation; weak to fire, cold) with an attack that does 12 slashing damage at initiative 4`;
 
 const input = `Immune System:
 3609 units each with 2185 hit points (weak to cold, radiation) with an attack that does 5 slashing damage at initiative 20
