@@ -1,29 +1,23 @@
 "use strict";
 
 function calc() {
-	const points = input.split("\n").map(l => l.match(/-?\d+/g).map(Number));
+	let points = input.split("\n").map(l => l.match(/-?\d+/g).map(Number));
 
 	const constellations = [];
 
-	while (true) {
-		let freePoints = points.filter(p => constellations.every(c => c.indexOf(p) < 0));
-
-		if (freePoints.length == 0) {
-			break;
-		}
-
-		let constellation = [freePoints[0]];
-		freePoints = freePoints.slice(1);
+	while (points.length > 0) {
+		const constellation = [points[0]];
+		points = points.slice(1);
 
 		while (true) {
-			let inRange = freePoints.filter(p => !constellation.every(e => manhDist(p, e) > 3));
+			const inRange = points.filter(p => !constellation.every(e => manhDist(p, e) > 3));
 			
 			if (inRange.length == 0) {
 				break;
 			} 
 			
 			inRange.forEach(p => constellation.push(p));
-			freePoints = freePoints.filter(p => inRange.indexOf(p) < 0);
+			points = points.filter(p => inRange.indexOf(p) < 0);
 		}
 
 		constellations.push(constellation);
